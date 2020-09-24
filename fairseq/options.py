@@ -654,6 +654,29 @@ def add_interactive_args(parser):
     # fmt: on
 
 
+def add_mix_args(group):
+    # fmt: off
+
+    group.add_argument('--sigsoftmax', action='store_true',
+                        help='sigsoftmax')
+    group.add_argument('--mix_softmax', action='store_true',
+                        help='mix_softmax')
+    group.add_argument('--mix_type', type=int, default=-1,
+                        help='mix_softmax type')
+    group.add_argument('--temperature', type=float, default=1.0,
+                        help='attention map softmax temperature')
+    group.add_argument('--pre_drop_mix', action='store_true',
+                        help='mix_softmax before attention dropout')
+    group.add_argument('--pre_mix', action='store_true',
+                        help='mix attn before softmax')
+    group.add_argument('--fix_head_dim', type=int, default=-1,
+                        help='fix head dim')
+    group.add_argument('--mix_layers', type=int, default=None, help='specify which layers have fix heads')
+    group.add_argument('--use_cosine_reg', action='store_true',
+                        help='use cosine regularization for attention heads')
+    # fmt: on
+
+
 def add_model_args(parser):
     group = parser.add_argument_group("Model configuration")
     # fmt: off
@@ -670,4 +693,5 @@ def add_model_args(parser):
                        choices=ARCH_MODEL_REGISTRY.keys(),
                        help='model architecture')
     # fmt: on
+    add_mix_args(group)
     return group

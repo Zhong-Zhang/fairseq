@@ -584,12 +584,22 @@ class TransformerDecoder(FairseqIncrementalDecoder):
             self.layers = LayerDropModuleList(p=self.decoder_layerdrop)
         else:
             self.layers = nn.ModuleList([])
-        self.layers.extend(
-            [
-                self.build_decoder_layer(args, no_encoder_attn)
-                for _ in range(args.decoder_layers)
-            ]
-        )
+
+        # apply mix softmax for distinct layers
+        ##############################################
+        if args.mix_softmax:
+            if args.mix_layers is None:
+                mix_layers_list = list(range(args.decoder_layers))
+            else:
+                mix_layers_list = list(range(args.mix_layers))
+        else:
+            mix_layers_list = [-1]
+        for i in range(args.decoder_layers):
+            i_mix_softmax = i in mix_layers_list
+            args.mix_softmax = i_mix_softmax
+            self.layers.append(self.build_decoder_layer(args, no_encoder_attn))
+        ##############################################
+
         self.num_layers = len(self.layers)
 
         if args.decoder_normalize_before and not getattr(

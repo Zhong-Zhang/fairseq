@@ -70,6 +70,9 @@ class TransformerEncoderLayer(nn.Module):
             self_attention=True,
             q_noise=self.quant_noise,
             qn_block_size=self.quant_noise_block_size,
+            sigsoftmax=args.sigsoftmax, mix_softmax=args.mix_softmax, mix_type=args.mix_type,
+            temperature=args.temperature,
+            pre_drop_mix=args.pre_drop_mix, pre_mix=args.pre_mix, fix_head_dim=args.fix_head_dim, use_cosine_reg=args.use_cosine_reg
         )
 
     def upgrade_state_dict_named(self, state_dict, name):
@@ -226,6 +229,9 @@ class TransformerDecoderLayer(nn.Module):
             self_attention=not getattr(args, "cross_self_attention", False),
             q_noise=self.quant_noise,
             qn_block_size=self.quant_noise_block_size,
+            sigsoftmax=args.sigsoftmax, mix_softmax=args.mix_softmax, mix_type=args.mix_type,
+            temperature=args.temperature,
+            pre_drop_mix=args.pre_drop_mix, pre_mix=args.pre_mix, fix_head_dim=args.fix_head_dim, use_cosine_reg=args.use_cosine_reg
         )
 
     def build_encoder_attention(self, embed_dim, args):
@@ -238,6 +244,9 @@ class TransformerDecoderLayer(nn.Module):
             encoder_decoder_attention=True,
             q_noise=self.quant_noise,
             qn_block_size=self.quant_noise_block_size,
+            sigsoftmax=args.sigsoftmax, mix_softmax=args.mix_softmax, mix_type=args.mix_type,
+            temperature=args.temperature,
+            pre_drop_mix=args.pre_drop_mix, pre_mix=args.pre_mix, fix_head_dim=args.fix_head_dim, use_cosine_reg=args.use_cosine_reg
         )
 
     def prepare_for_onnx_export_(self):

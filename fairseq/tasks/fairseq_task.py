@@ -406,10 +406,21 @@ class FairseqTask(object):
         model.set_num_updates(update_num)
         with torch.autograd.profiler.record_function("forward"):
             loss, sample_size, logging_output = criterion(model, sample)
+
+        # cosine reg
+        ########################################
+        cosine_reg = 0
+        if self.args.use_cosine_reg:
+            num_layers = len(model.decoder.layers)
+            for i in range(num_layers):
+                cosine_reg += model.decoder.layers[i].self_attn.cosine_reg
+            cosine_reg = cosine_reg / num_layers
+        ########################################
+
         if ignore_grad:
             loss *= 0
         with torch.autograd.profiler.record_function("backward"):
-            optimizer.backward(loss)
+            optimizer.backward(loss if self.args.use_cosine_reg else loss + cosine_reg)
         return loss, sample_size, logging_output
 
     def valid_step(self, sample, model, criterion):

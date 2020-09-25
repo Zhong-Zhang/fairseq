@@ -674,6 +674,8 @@ def add_mix_args(group):
     group.add_argument('--mix_layers', type=int, default=None, help='specify which layers have fix heads')
     group.add_argument('--use_cosine_reg', action='store_true',
                         help='use cosine regularization for attention heads')
+    group.add_argument('--cosine_reg_lambda', type=float, default=1.0,
+                        help='cosine regularization strength')
     # fmt: on
 
 

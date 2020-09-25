@@ -142,6 +142,9 @@ class MultiheadAttention(nn.Module):
         # cosine reg
         self.use_cosine_reg = use_cosine_reg
         if self.use_cosine_reg:
+            self.cosine_reg = 0
+            print('using cosine regularization')
+        else:
             self.cosine_reg = None
 
         # Mix-softmax paras
@@ -247,7 +250,7 @@ class MultiheadAttention(nn.Module):
             and not torch.jit.is_scripting()
         ):
             assert key is not None and value is not None
-            return F.multi_head_attention_forward(
+            return self.multi_head_attention_forward(
                 query,
                 key,
                 value,
@@ -842,13 +845,13 @@ class MultiheadAttention(nn.Module):
         ################################################################################################
         if self.mix_softmax and not self.pre_mix:
             if self.pre_drop_mix:
-                attn_output_weights = F.dropout(attn_output_weights, p=self.dropout, training=self.training, )
+                attn_output_weights = F.dropout(attn_output_weights, p=dropout_p, training=training, )
                 attn_output_weights = mix_attention(attn_output_weights, self.mix_type, self.stochastic_w, self.bias, q, self.r_temperature, self.num_heads, self.head_dim, bsz, tgt_len, src_len)
             else:
                 attn_output_weights = mix_attention(attn_output_weights, self.mix_type, self.stochastic_w, self.bias, q, self.r_temperature, self.num_heads, self.head_dim, bsz, tgt_len, src_len)
-                attn_output_weights = F.dropout(attn_output_weights, p=self.dropout, training=self.training, )
+                attn_output_weights = F.dropout(attn_output_weights, p=dropout_p, training=training, )
         else:
-            attn_output_weights = F.dropout(attn_output_weights, p=self.dropout, training=self.training, )
+            attn_output_weights = F.dropout(attn_output_weights, p=dropout_p, training=training, )
         ################################################################################################
 
         # cosine reg

@@ -414,13 +414,13 @@ class FairseqTask(object):
             num_layers = len(model.decoder.layers)
             for i in range(num_layers):
                 cosine_reg += model.decoder.layers[i].self_attn.cosine_reg
-            cosine_reg = cosine_reg / num_layers
+            cosine_reg = cosine_reg * self.args.cosine_reg_lambda / num_layers
         ########################################
 
         if ignore_grad:
             loss *= 0
         with torch.autograd.profiler.record_function("backward"):
-            optimizer.backward(loss if self.args.use_cosine_reg else loss + cosine_reg)
+            optimizer.backward(loss + cosine_reg if self.args.use_cosine_reg else loss)
         return loss, sample_size, logging_output
 
     def valid_step(self, sample, model, criterion):

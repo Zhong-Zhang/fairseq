@@ -30,6 +30,7 @@ def multi_head_attention_forward(
     static_k: Optional[Tensor] = None,
     static_v: Optional[Tensor] = None,
     sync: bool = False,
+    sync_type: str = "len",
 ) -> Tuple[Tensor, Optional[Tensor]]:
     r"""
     Args:
@@ -275,7 +276,18 @@ def multi_head_attention_forward(
     attn_output_weights = dropout(attn_output_weights, p=dropout_p, training=training)
 
     if sync:
-        v = (v.unsqueeze(1) - v.unsqueeze(2)).sin().mean(2)
+        if sync_type == "len":
+            mask = (1 / (torch.arange(0, v.size(1), device=v.device) + torch.finfo(v.dtype).eps).repeat(v.size(1), 1).T).tril().unsqueeze(0).unsqueeze(3)
+            v = ((v.unsqueeze(1) - v.unsqueeze(2)).sin() * mask).sum(2)
+        elif sync_type == "head":
+            v = v.view(bsz, num_heads, -1, head_dim)
+            v = (v.unsqueeze(1) - v.unsqueeze(2)).sin().mean(2)
+            v = v.view(bsz * num_heads, -1, head_dim)
+        elif sync_type == "dim":
+            v = (v.unsqueeze(2) - v.unsqueeze(3)).sin().mean(3)
+        else:
+            exit("Unknown sync type")
+
     attn_output = torch.bmm(attn_output_weights, v)
     assert list(attn_output.size()) == [bsz * num_heads, tgt_len, head_dim]
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)

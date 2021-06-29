@@ -30,6 +30,10 @@ class TransformerLanguageModelConfig(FairseqDataclass):
     sync: bool = field(
         default=False, metadata={"help": "apply sync attention"}
     )
+
+    sync_type: ChoiceEnum(["len", "head", "dim"]) = field(
+        default="len", metadata={"help": "sync attention type"}
+    )
     ############################
 
     activation_fn: ChoiceEnum(utils.get_available_activation_fns()) = field(

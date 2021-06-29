@@ -38,7 +38,8 @@ class MultiheadAttention(nn.Module):
         encoder_decoder_attention=False,
         q_noise=0.0,
         qn_block_size=8,
-        sync=False
+        sync=False,
+        sync_type="len",
     ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -92,8 +93,9 @@ class MultiheadAttention(nn.Module):
 
         # custom settings
         self.sync = sync
+        self.sync_type = sync_type
         if self.sync:
-            print('Using sync attention.')
+            print('Using sync attention with type: ', self.sync_type)
 
     def prepare_for_onnx_export_(self):
         self.onnx_trace = True
@@ -198,6 +200,7 @@ class MultiheadAttention(nn.Module):
                 k_proj_weight=self.k_proj.weight,
                 v_proj_weight=self.v_proj.weight,
                 sync=self.sync,
+                sync_type=self.sync_type,
             )
 
         # check

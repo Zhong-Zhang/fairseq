@@ -260,6 +260,7 @@ class TransformerDecoderLayer(nn.Module):
             q_noise=self.quant_noise,
             qn_block_size=self.quant_noise_block_size,
             sync=args.sync,
+            sync_type=args.sync_type,
         )
 
     def build_encoder_attention(self, embed_dim, args):

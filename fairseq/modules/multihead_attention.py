@@ -14,6 +14,7 @@ from fairseq.modules.fairseq_dropout import FairseqDropout
 from fairseq.modules.quant_noise import quant_noise
 from torch import Tensor, nn
 from torch.nn import Parameter
+from fairseq.modules.custom_multi_head_attention_forward import multi_head_attention_forward
 
 
 @with_incremental_state
@@ -37,6 +38,7 @@ class MultiheadAttention(nn.Module):
         encoder_decoder_attention=False,
         q_noise=0.0,
         qn_block_size=8,
+        sync=False
     ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -87,6 +89,11 @@ class MultiheadAttention(nn.Module):
         self.reset_parameters()
 
         self.onnx_trace = False
+
+        # custom settings
+        self.sync = sync
+        if self.sync:
+            print('Using sync attention.')
 
     def prepare_for_onnx_export_(self):
         self.onnx_trace = True
@@ -167,7 +174,8 @@ class MultiheadAttention(nn.Module):
             and not torch.jit.is_scripting()
         ):
             assert key is not None and value is not None
-            return F.multi_head_attention_forward(
+            # return F.multi_head_attention_forward(
+            return multi_head_attention_forward(
                 query,
                 key,
                 value,
@@ -189,7 +197,11 @@ class MultiheadAttention(nn.Module):
                 q_proj_weight=self.q_proj.weight,
                 k_proj_weight=self.k_proj.weight,
                 v_proj_weight=self.v_proj.weight,
+                sync=self.sync,
             )
+
+        # check
+        exit('Wrong program flow!')
 
         if incremental_state is not None:
             saved_state = self._get_input_buffer(incremental_state)

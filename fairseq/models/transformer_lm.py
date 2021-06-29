@@ -26,6 +26,12 @@ DEFAULT_MAX_TARGET_POSITIONS = 1024
 
 @dataclass
 class TransformerLanguageModelConfig(FairseqDataclass):
+    # Sync Transformer
+    sync: bool = field(
+        default=False, metadata={"help": "apply sync attention"}
+    )
+    ############################
+
     activation_fn: ChoiceEnum(utils.get_available_activation_fns()) = field(
         default="relu", metadata={"help": "activation function to use"}
     )
